@@ -31,6 +31,14 @@ import inspect
 import bottle
 from pymongo import errors as pymongo_errors
 
+try:
+    from mongoengine import ConnectionFailure as ConnectionException
+except ImportError:
+    # Fall back to base exception
+    ConnectionException = Exception
+
+
+
 class MongoEnginePlugin(object):
     '''
     This plugin connects to monogengine database and passes it
@@ -93,7 +101,7 @@ class MongoEnginePlugin(object):
                 kwargs[keyword] = connection            
                 rv = callback(*args,**kwargs)
                 
-            except (mongoengine.ConnectionError, pymongo_errors.InvalidURI, pymongo_errors.ConfigurationError), e:
+            except (ConnectionException, pymongo_errors.InvalidURI, pymongo_errors.ConfigurationError) as e:
                 raise bottle.HTTPError(500, msg_error, e)
             finally:
                 disconnect(alias)
